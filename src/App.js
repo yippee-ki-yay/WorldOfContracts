@@ -33,7 +33,7 @@ class App extends Component {
               </ul>
 
               <ul className="nav navbar-nav navbar-right">
-                <li><a href="/interface" target="_blank">Interface</a></li>
+                <li><a href="/interface">Interface</a></li>
 
               </ul>
 
