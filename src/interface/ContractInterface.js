@@ -13,7 +13,11 @@ class ContractInterface extends Component {
       abi: '',
       web3: null,
       instance: null,
-      loaded: false
+      loaded: false,
+      balance: 0,
+      funtions: [],
+      publicVariables: [],
+      events: []
     }
   }
 
@@ -38,18 +42,55 @@ class ContractInterface extends Component {
     })
   }
 
-  loadContract = () => {
+  loadContract = async () => {
     const dnsContract = contract(JSON.parse(this.state.abi));
 
     dnsContract.setProvider(this.state.web3.currentProvider);
 
     const instance = dnsContract.at(this.state.address);
 
-    this.setState({
-      instance: instance,
-      loaded: true
+    console.log(instance.transactionHash);
+
+    await this.parseAbi(instance.abi, instance);
+
+    this.state.web3.eth.getBalance(this.state.address, (err, res) => {
+
+      let balance = this.state.web3.fromWei(res.valueOf(), 'ether');
+
+      this.setState({
+        instance: instance,
+        loaded: true,
+        balance: balance
+      });
     });
-    
+
+  }
+
+  parseAbi = async (abi, instance) => {
+
+    let functions = [];
+    let publicVariables = [];
+    let events = [];
+
+    abi.forEach((row) => {
+      if(row.constant === true && row.inputs.length === 0) { 
+        publicVariables.push(row);
+      } else if(row.constant === false && row.type === "function") {
+        functions.push(row);
+      } else if(row.type === "event") {
+        events.push(row);
+      }
+    });
+
+    await Promise.all(publicVariables.map(p => instance[p.name].call().then(res => {
+      p.resolvedValue = res.valueOf();
+    })));
+
+    this.setState({
+      functions,
+      publicVariables,
+      events
+    });
   }
 
   render() {
@@ -91,18 +132,31 @@ class ContractInterface extends Component {
     } else {
       return (
           <div className="container">
-          <div className="row">
-            <div className="col-lg-8 col-lg-offset-2"> 
-              <div className="well bs-component" id="load-contract">
-              <form className="form-horizontal">
-                
-                <fieldset >
-                  <legend>Contract : { this.state.address } </legend>
-                  
-                </fieldset>
+            <div className="row">
+              <div className="col-lg-8"> 
+                <div className="well bs-component" id="load-contract">
+                  <form className="form-horizontal">
+                    <fieldset >
+                      <legend>Contract : { this.state.address } </legend>
+                      <label>Contract balance: { this.state.balance } ether</label>
+                    </fieldset>
                 </form>
               </div>
+
               </div>
+                <div className="col-lg-4"> 
+                   <div className="well bs-component" id="load-contract">
+                    <form className="form-horizontal">
+                      <legend>Variables & Constant methods</legend>
+                      {
+                        this.state.publicVariables.map(row => 
+                          <p className="text-info"> {row.outputs[0].type}  { row.name } = { row.resolvedValue } </p>
+                        
+                        )
+                      }
+                    </form>
+                   </div>
+                </div>
               </div>
           </div>
       );
