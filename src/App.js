@@ -1,29 +1,45 @@
-import React, { Component } from 'react'
-import { Link } from 'react-router'
-
-// UI Components
-import LoginButtonContainer from './user/ui/loginbutton/LoginButtonContainer'
-import LogoutButtonContainer from './user/ui/logoutbutton/LogoutButtonContainer'
+import React, { Component } from 'react';
 
 // Styles
-import './css/oswald.css';
-import './css/open-sans.css';
 import './css/bootstrap.min.css';
 import './css/custom.min.css';
+import './css/theme.min.css';
 import './App.css';
 
 class App extends Component {
   render() {
 
     return (
-      <div className="App">
-        {/*<nav className="navbar pure-menu pure-menu-horizontal">
-          <Link to="/" className="pure-menu-heading pure-menu-link">Truffle Box</Link>
-          <ul className="pure-menu-list navbar-right">
-            <OnlyGuestLinks />
-            <OnlyAuthLinks />
-          </ul>
-        </nav>*/}
+      <div>
+        <div className="navbar navbar-default navbar-fixed-top">
+          <div className="container">
+            <div className="navbar-header">
+              <a href="../" className="navbar-brand">World Of Contracts</a>
+              <button className="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                <span className="icon-bar"></span>
+                <span className="icon-bar"></span>
+                <span className="icon-bar"></span>
+              </button>
+            </div>
+            <div className="navbar-collapse collapse" id="navbar-main">
+              <ul className="nav navbar-nav">
+                
+                <li>
+                  <a href="/contracts">Contracts</a>
+                </li>
+                <li>
+                  <a href="/dapps">dApps</a>
+                </li>
+              </ul>
+
+              <ul className="nav navbar-nav navbar-right">
+                <li><a href="/interface" target="_blank">Interface</a></li>
+
+              </ul>
+
+            </div>
+          </div>
+        </div>
 
         {this.props.children}
       </div>
