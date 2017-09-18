@@ -29,8 +29,6 @@ class ContractInterface extends Component {
   componentWillMount() {
      getWeb3
     .then(results => {
-      console.log(results);
-
       this.setState({
         web3: results.payload.web3Instance
       });
@@ -44,7 +42,7 @@ class ContractInterface extends Component {
   handleChange = (event) => {
     this.setState({
       [event.target.name] : event.target.value
-    })
+    });
   }
 
   loadContract = async () => {
@@ -101,7 +99,7 @@ class ContractInterface extends Component {
 
   render() {
 
-    if(this.state.loaded) {
+    if(!this.state.loaded) {
       return(
         <div className="container">
           <div className="row">
@@ -174,7 +172,7 @@ class ContractInterface extends Component {
 
                <div className="row">
                 <FunctionsPanel instance={ this.state.instance } functions={ this.state.funtions } />
-                <ConvertPanel web3={ this.state.web3 }/>
+                <ConvertPanel />
                </div>
 
                <EventsPanel instance={ this.state.instance } events={ this.state.events } />

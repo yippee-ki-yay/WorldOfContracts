@@ -17,7 +17,7 @@ class FunctionsPanel extends Component {
                   <div className="well bs-component">
                      <form className="form-horizontal">
                       <legend>Functions</legend>
-
+                     
                      </form>
                   </div>
                 </div>
