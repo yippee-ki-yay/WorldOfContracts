@@ -3,6 +3,10 @@ import getWeb3 from '../util/web3/getWeb3';
 
 import contract from 'truffle-contract';
 
+import FunctionsPanel from './FunctionsPanel';
+import ConvertPanel from './ConvertPanel';
+import EventsPanel from './EventsPanel';
+
 class ContractInterface extends Component {
 
   constructor(props) {
@@ -15,6 +19,7 @@ class ContractInterface extends Component {
       instance: null,
       loaded: false,
       balance: 0,
+      name: '',
       funtions: [],
       publicVariables: [],
       events: []
@@ -45,22 +50,23 @@ class ContractInterface extends Component {
   loadContract = async () => {
     const dnsContract = contract(JSON.parse(this.state.abi));
 
+    const name = JSON.parse(this.state.abi).contract_name;
+
     dnsContract.setProvider(this.state.web3.currentProvider);
 
     const instance = dnsContract.at(this.state.address);
-
-    console.log(instance.transactionHash);
 
     await this.parseAbi(instance.abi, instance);
 
     this.state.web3.eth.getBalance(this.state.address, (err, res) => {
 
-      let balance = this.state.web3.fromWei(res.valueOf(), 'ether');
+    let balance = this.state.web3.fromWei(res.valueOf(), 'ether');
 
-      this.setState({
+    this.setState({
         instance: instance,
         loaded: true,
-        balance: balance
+        balance: balance,
+        name: name
       });
     });
 
@@ -95,7 +101,7 @@ class ContractInterface extends Component {
 
   render() {
 
-    if(!this.state.loaded) {
+    if(this.state.loaded) {
       return(
         <div className="container">
           <div className="row">
@@ -137,8 +143,10 @@ class ContractInterface extends Component {
                 <div className="well bs-component" id="load-contract">
                   <form className="form-horizontal">
                     <fieldset >
-                      <legend>Contract : { this.state.address } </legend>
-                      <label>Contract balance: { this.state.balance } ether</label>
+                      <legend>Contract   { this.state.name } </legend>
+                      <h4>Contract name: <span className="text-success"> { this.state.name } </span> </h4>
+                      <h4>Contract address: <span className="text-success">{ this.state.address } </span> </h4>
+                      <h4>Contract balance: <span className="text-success"> { this.state.balance } ether </span> </h4>
                     </fieldset>
                 </form>
               </div>
@@ -149,8 +157,13 @@ class ContractInterface extends Component {
                     <form className="form-horizontal">
                       <legend>Variables & Constant methods</legend>
                       {
-                        this.state.publicVariables.map(row => 
-                          <p className="text-info"> {row.outputs[0].type}  { row.name } = { row.resolvedValue } </p>
+                        this.state.publicVariables.map(row => (
+                          <p> 
+                            <span className="text-primary">{ row.outputs[0].type } </span>
+                            <span className="text-success">{ row.name } = </span>
+                            <span className="text-info"> { row.resolvedValue }</span>
+                          </p>
+                        )
                         
                         )
                       }
@@ -158,6 +171,14 @@ class ContractInterface extends Component {
                    </div>
                 </div>
               </div>
+
+               <div className="row">
+                <FunctionsPanel instance={ this.state.instance } functions={ this.state.funtions } />
+                <ConvertPanel web3={ this.state.web3 }/>
+               </div>
+
+               <EventsPanel instance={ this.state.instance } events={ this.state.events } />
+
           </div>
       );
     }
