@@ -20,7 +20,7 @@ class ContractInterface extends Component {
       loaded: false,
       balance: 0,
       name: '',
-      funtions: [],
+      functions: [],
       publicVariables: [],
       events: []
     }
@@ -79,9 +79,13 @@ class ContractInterface extends Component {
     abi.forEach((row) => {
       if(row.constant === true && row.inputs.length === 0) { 
         publicVariables.push(row);
-      } else if(row.constant === false && row.type === "function") {
+      }
+      
+      if(row.type === "function" && !(row.constant === true && row.inputs.length === 0)) {
         functions.push(row);
-      } else if(row.type === "event") {
+      }
+      
+      if(row.type === "event") {
         events.push(row);
       }
     });
@@ -156,7 +160,7 @@ class ContractInterface extends Component {
                       <legend>Variables & Constant methods</legend>
                       {
                         this.state.publicVariables.map(row => (
-                          <p> 
+                          <p key={ row.name }> 
                             <span className="text-primary">{ row.outputs[0].type } </span>
                             <span className="text-success">{ row.name } = </span>
                             <span className="text-info"> { row.resolvedValue }</span>
@@ -171,7 +175,7 @@ class ContractInterface extends Component {
               </div>
 
                <div className="row">
-                <FunctionsPanel instance={ this.state.instance } functions={ this.state.funtions } />
+                <FunctionsPanel instance={ this.state.instance } functions={ this.state.functions } />
                 <ConvertPanel />
                </div>
 
