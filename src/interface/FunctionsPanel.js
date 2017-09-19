@@ -8,9 +8,12 @@ class FunctionsPanel extends Component {
         this.state = {
             instance: props.instance,
             functions: props.functions,
+            accounts: props.accounts,
+            web3: props.web3,
             declarations: [],
             selected: '',
-            hasInputs: false
+            hasInputs: false,
+            inputs: ''
         };
     }
 
@@ -47,43 +50,86 @@ class FunctionsPanel extends Component {
         });
     }
 
-    runFunction = () => {
+    runFunction = async () => {
         const name = this.state.selected;
 
         let ourMethod = this.state.functions.find(f => f.name === name);
 
-        console.log(ourMethod);
+        const account = this.state.accounts[0];
 
         const isTransaction = !ourMethod.constant;
 
         // no inputs to get from the user just run it
         if(ourMethod.inputs.length === 0) {
             if(isTransaction) {
-                this.state.instance[ourMethod.name].sendTransaction({from: '', value: 0});
+                this.state.instance[ourMethod.name].sendTransaction({from: account, value: 0});
             } else {
 
             }
         } else {
-            this.setState({
-                hasInputs: true
+
+            let inputsArr = [];
+
+            ourMethod.inputs.forEach(input => {
+                inputsArr.push(this.state[input.name]);
             });
+
+            const tx = await this.state.instance[ourMethod.name].sendTransaction(...inputsArr, {
+                from: account, value: 0
+            });
+
+            setInterval(() => {
+                this.state.web3.eth.getTransactionReceipt(tx, (err, details) => {
+                console.log(details);
+            });
+            }, 8000)
+
+            
         }
     }
 
-    handleChange = (event) => {
+    selectMethod = (event) => {
 
         const name = event.target.value;
         let state = false;
 
         let ourMethod = this.state.functions.find(f => f.name === name);
+        let inputs;
 
         if(ourMethod.inputs.length > 0) {
             state = true;
+
+            inputs = ourMethod.inputs.map((input, i) => {
+
+                if(i % 2 !== 0) {
+                    return (
+                        <div className="row">
+                            <div className="col-lg-4">
+                                <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder="Add input" />
+                            </div>
+                        </div>
+                    );
+                } else {
+                    return (
+                        <div className="col-lg-4">
+                            <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder="Add input" />
+                        </div>
+                    );
+                }
+                
+            });
         }
 
         this.setState({
             selected : name,
-            hasInputs: state
+            hasInputs: state,
+            inputs: inputs
+        });
+    }
+
+    getInputs = (event) => {
+        this.setState({
+            [event.target.name] : event.target.value
         });
     }
 
@@ -95,7 +141,7 @@ class FunctionsPanel extends Component {
                       <legend>Functions</legend>
                          <div className="form-group">
                             <div className="col-lg-10">
-                                <select className="form-control" onChange={ this.handleChange } value={ this.state.selected } id="select">
+                                <select className="form-control" onChange={ this.selectMethod } value={ this.state.selected } id="select">
                                     { this.state.declarations }
                                 </select>
                             </div>
@@ -104,13 +150,11 @@ class FunctionsPanel extends Component {
                             </div>
                         </div>
 
-                        { this.state.hasInputs && 
-                            <div className="row">
-                                <div className="col-lg-8">
-                                    <input name="inputs" value={ this.state.inputs } onChange={ this.handleChange } type="text" className="form-control" placeholder="Add inputs seperated by ," />
-                                </div>
-                            </div>
-                        }
+                        <div className="form-group">
+                            { this.state.hasInputs && 
+                                this.state.inputs
+                            }
+                        </div>
                      </form>
                   </div>
                 </div>

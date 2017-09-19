@@ -25,10 +25,10 @@ class App extends Component {
               <ul className="nav navbar-nav">
                 
                 <li>
-                  <a href="/contracts">Contracts</a>
+                  <a href="/interface">Contracts</a>
                 </li>
                 <li>
-                  <a href="/dapps">dApps</a>
+                  <a href="/interface">dApps</a>
                 </li>
               </ul>
 

@@ -16,6 +16,7 @@ class ContractInterface extends Component {
       address: '0xb1C94B6dE745100F4c7805Ff24aA787a53f44A5F',
       abi: '',
       web3: null,
+      accounts: [],
       instance: null,
       loaded: false,
       balance: 0,
@@ -29,8 +30,15 @@ class ContractInterface extends Component {
   componentWillMount() {
      getWeb3
     .then(results => {
-      this.setState({
-        web3: results.payload.web3Instance
+
+      const web3 = results.payload.web3Instance;
+
+      web3.eth.getAccounts((error, accounts) => {
+
+         this.setState({
+            accounts,
+            web3
+          });
       });
 
     })
@@ -175,7 +183,12 @@ class ContractInterface extends Component {
               </div>
 
                <div className="row">
-                <FunctionsPanel instance={ this.state.instance } functions={ this.state.functions } />
+                <FunctionsPanel 
+                  instance={ this.state.instance } 
+                  functions={ this.state.functions } 
+                  accounts={ this.state.accounts } 
+                  web3={ this.state.web3 }
+                />
                 <ConvertPanel />
                </div>
 
