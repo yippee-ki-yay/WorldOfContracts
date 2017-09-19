@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 
+import ResultItem from "./ResultItem";
+
 class FunctionsPanel extends Component {
 
     constructor(props) {
@@ -13,7 +15,9 @@ class FunctionsPanel extends Component {
             declarations: [],
             selected: '',
             hasInputs: false,
-            inputs: ''
+            inputs: '',
+            logs: [],
+            loading: false
         };
     }
 
@@ -62,9 +66,9 @@ class FunctionsPanel extends Component {
         // no inputs to get from the user just run it
         if(ourMethod.inputs.length === 0) {
             if(isTransaction) {
-                this.state.instance[ourMethod.name].sendTransaction({from: account, value: 0});
+                await this.makeTransaction(account, ourMethod, []);
             } else {
-
+                this.state.instance[ourMethod.name].call();
             }
         } else {
 
@@ -74,18 +78,41 @@ class FunctionsPanel extends Component {
                 inputsArr.push(this.state[input.name]);
             });
 
-            const tx = await this.state.instance[ourMethod.name].sendTransaction(...inputsArr, {
-                from: account, value: 0
-            });
+            if(!isTransaction) {
 
-            setInterval(() => {
-                this.state.web3.eth.getTransactionReceipt(tx, (err, details) => {
-                console.log(details);
-            });
-            }, 8000)
-
+            } else {
+                await this.makeTransaction(account, ourMethod, inputsArr);
+            }
             
         }
+    }
+
+    makeTransaction = async (account, ourMethod, inputsArr) => {
+        const tx = await this.state.instance[ourMethod.name].sendTransaction(...inputsArr, {
+            from: account, value: 0
+        });
+
+        this.setState({loading: true});
+
+
+        const currLogs = this.state.logs;
+
+        let interval = setInterval(() => {
+            this.state.web3.eth.getTransactionReceipt(tx, (err, details) => {
+
+                if(details) {
+                    currLogs.push({transactionHash: tx, gas: 0});
+
+                    this.setState({
+                        logs: currLogs,
+                        loading: false
+                    });
+
+                    clearInterval(interval);
+                }
+
+            });
+        }, 5000);
     }
 
     selectMethod = (event) => {
@@ -103,7 +130,7 @@ class FunctionsPanel extends Component {
 
                 if(i % 2 !== 0) {
                     return (
-                        <div className="row">
+                        <div className="row" key={ input.name }>
                             <div className="col-lg-4">
                                 <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder="Add input" />
                             </div>
@@ -111,7 +138,7 @@ class FunctionsPanel extends Component {
                     );
                 } else {
                     return (
-                        <div className="col-lg-4">
+                        <div className="col-lg-4" key={ input.name }>
                             <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder="Add input" />
                         </div>
                     );
@@ -153,6 +180,21 @@ class FunctionsPanel extends Component {
                         <div className="form-group">
                             { this.state.hasInputs && 
                                 this.state.inputs
+                            }
+                        </div>
+
+                        <div>
+                            { 
+                                this.state.logs.map(log => 
+                                    <ResultItem data={ log } />
+                                ) 
+                            
+                            }
+                        </div>
+                        <div>
+                            {
+                                this.state.loading && 
+                                <span>Waiting for transaction to be mined!</span>
                             }
                         </div>
                      </form>
