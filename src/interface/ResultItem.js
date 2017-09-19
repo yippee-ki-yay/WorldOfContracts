@@ -13,7 +13,7 @@ class ResultItem extends Component {
 
     render() {
         return (
-            <div className="alert alert-dismissible alert-success">
+            <div className="alert alert-dismissible alert-info">
                 <button type="button" className="close" data-dismiss="alert">&times;</button>
                 <strong>Well done!</strong> You successfully read <a href="#" className="alert-link">this important alert message</a>.
             </div>

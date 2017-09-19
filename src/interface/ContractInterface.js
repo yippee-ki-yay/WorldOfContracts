@@ -7,13 +7,15 @@ import FunctionsPanel from './FunctionsPanel';
 import ConvertPanel from './ConvertPanel';
 import EventsPanel from './EventsPanel';
 
+import SlotMachine from './contracts/SlotMachine';
+
 class ContractInterface extends Component {
 
   constructor(props) {
     super(props);
 
     this.state = {
-      address: '0xb1C94B6dE745100F4c7805Ff24aA787a53f44A5F',
+      address: '',
       abi: '',
       web3: null,
       accounts: [],
@@ -23,11 +25,16 @@ class ContractInterface extends Component {
       name: '',
       functions: [],
       publicVariables: [],
-      events: []
+      events: [],
+      selected: '',
+      contracts: []
     }
   }
 
   componentWillMount() {
+
+     this.exampleContracts();
+
      getWeb3
     .then(results => {
 
@@ -50,6 +57,36 @@ class ContractInterface extends Component {
   handleChange = (event) => {
     this.setState({
       [event.target.name] : event.target.value
+    });
+  }
+
+  exampleContracts = () => {
+    const contracts = [
+      {
+        name: "Pick a contract"
+      },
+      {
+        name: "SlotMachine",
+        abi: JSON.stringify(SlotMachine),
+        address: '0x7D96790b267c57Aeb9d498fdF2FF584e8f0E5F3f'
+      }
+    ];
+    this.setState({
+        contracts
+    });
+
+  }
+
+  selectMethod = (event) => {
+
+    const name = event.target.value;
+
+    let contract = this.state.contracts.find(c => c.name === name);
+
+    this.setState({
+      selected: event.target.value,
+      abi: contract.abi,
+      address: contract.address
     });
   }
 
@@ -115,7 +152,7 @@ class ContractInterface extends Component {
       return(
         <div className="container">
           <div className="row">
-            <div className="col-lg-8 col-lg-offset-2"> 
+            <div className="col-lg-8"> 
               <div className="well bs-component" id="load-contract">
               <form className="form-horizontal">
                 
@@ -135,13 +172,34 @@ class ContractInterface extends Component {
 
                     <div className="form-group">
                       <div className="col-lg-10">
-                        <button type="button" className="btn btn-primary" onClick={ this.loadContract }>Submit</button>
+                        <button type="button" className="btn btn-primary" onClick={ this.loadContract }>Load!</button>
                       </div>
                     </div>
                 </fieldset>
                 </form>
               </div>
               </div>
+
+              <div className="col-lg-4"> 
+                <div className="well bs-component" id="load-contract">
+                  <form className="form-horizontal">
+                    <legend>Example contracts</legend>
+                      <div className="row">
+                        <div className="col-lg-10">
+                            <select className="form-control" onChange={ this.selectMethod } value={ this.state.selected } id="select">
+                                { 
+                                  this.state.contracts.map(c => 
+                                    <option value={ c.name } key={ c.name }> { c.name } - { c.address } </option>
+                                  )
+                                
+                                }
+                            </select>
+                        </div>
+                      </div>
+                  </form>
+                </div>
+              </div>
+
               </div>
           </div>
       )
