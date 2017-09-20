@@ -107,12 +107,13 @@ class EventsPanel extends Component {
                                     <div className="col-lg-8"> 
                                         <div key={ log.tx } className="well well-sm">
                                             <div>Event: { log.name }  </div>
-                                            <div>Results: </div>
-                                            {
-                                                log.values.map(v => 
-                                                    <span> { v } </span> 
-                                                )
-                                            }
+                                            <div>Results:
+                                                {
+                                                    log.values.map(v => 
+                                                        <span> { v } </span> 
+                                                    )
+                                                }
+                                             </div>
                                             </div>
                                         </div>
                                     </div>

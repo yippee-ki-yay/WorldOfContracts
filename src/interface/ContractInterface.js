@@ -29,6 +29,7 @@ class ContractInterface extends Component {
       functions: [],
       publicVariables: [],
       events: [],
+      fallback: false,
       selected: '',
       contracts: []
     }
@@ -99,13 +100,15 @@ class ContractInterface extends Component {
   }
 
   loadContract = async () => {
-    const dnsContract = contract(JSON.parse(this.state.abi));
+    const ourContract = contract(JSON.parse(this.state.abi));
 
     const name = JSON.parse(this.state.abi).contract_name;
 
-    dnsContract.setProvider(this.state.web3.currentProvider);
+    ourContract.setProvider(this.state.web3.currentProvider);
 
-    const instance = dnsContract.at(this.state.address);
+    const instance = ourContract.at(this.state.address);
+
+    console.log(instance);
 
     await this.parseAbi(instance.abi, instance);
 
@@ -128,6 +131,7 @@ class ContractInterface extends Component {
     let functions = [];
     let publicVariables = [];
     let events = [];
+    let fallback = false;
 
     abi.forEach((row) => {
       if(row.constant === true && row.inputs.length === 0 && row.payable === false) { 
@@ -141,6 +145,11 @@ class ContractInterface extends Component {
       if(row.type === "event") {
         events.push(row);
       }
+
+      if(row.type === "fallback") {
+        fallback = row.payable;
+      }
+
     });
 
     await Promise.all(publicVariables.map(p => instance[p.name].call().then(res => {
@@ -150,7 +159,8 @@ class ContractInterface extends Component {
     this.setState({
       functions,
       publicVariables,
-      events
+      events,
+      fallback
     });
   }
 
@@ -266,6 +276,7 @@ class ContractInterface extends Component {
                   functions={ this.state.functions } 
                   accounts={ this.state.accounts } 
                   web3={ this.state.web3 }
+                  fallback={ this.state.fallback }
                 />
                 <ConvertPanel />
                </div>

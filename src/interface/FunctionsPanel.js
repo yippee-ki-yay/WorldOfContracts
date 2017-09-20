@@ -11,6 +11,7 @@ class FunctionsPanel extends Component {
             instance: props.instance,
             functions: props.functions,
             accounts: props.accounts,
+            fallback: props.fallback,
             web3: props.web3,
             declarations: [],
             selected: '',
@@ -59,9 +60,14 @@ class FunctionsPanel extends Component {
     runFunction = async () => {
         const name = this.state.selected;
 
-        let ourMethod = this.state.functions.find(f => f.name === name);
-
         const account = this.state.accounts[0];
+
+        if(name === "fallback-method") {
+            await this.makeTransaction(account, {}, [], true);
+            return;
+        }
+
+        let ourMethod = this.state.functions.find(f => f.name === name);
 
         const isTransaction = !ourMethod.constant;
 
@@ -95,13 +101,24 @@ class FunctionsPanel extends Component {
         }
     }
 
-    makeTransaction = async (account, ourMethod, inputsArr) => {
+    makeTransaction = async (account, ourMethod, inputsArr, fallback) => {
 
         const valueInEther = this.state.web3.toWei(this.state.ether || 0, 'ether');
+
+        let method = this.state.instance[ourMethod.name];
         
-        this.state.instance[ourMethod.name].sendTransaction(...inputsArr, {
+        if(fallback) {
+            method = this.state.instance;
+        }
+
+        method.sendTransaction(...inputsArr, {
             from: account, value: valueInEther
         }).then(tx => {
+
+            //Just wtf!
+            if(tx.tx) {
+                tx = tx.tx;
+            }
 
             this.setState({loading: true});
 
@@ -109,15 +126,16 @@ class FunctionsPanel extends Component {
 
             let interval = setInterval(() => {
 
-                const name = ourMethod.name;
+                //const name = ourMethod.name;
 
                 this.state.web3.eth.getTransactionReceipt(tx, (err, details) => {
+
 
                     if(details) {
                         currLogs.push({isCall: false, transactionHash: tx, gas: details.gasUsed});
 
                         this.setState({
-                            name: name,
+                            name: "",
                             index: currLogs.length,
                             logs: currLogs,
                             loading: false
@@ -127,7 +145,7 @@ class FunctionsPanel extends Component {
                     }
 
                 });
-            }, 5000);
+            }, 3000);
         }).catch(err => {
             console.log("Error", err);
         })
@@ -158,6 +176,16 @@ class FunctionsPanel extends Component {
     selectMethod = (event) => {
 
         const name = event.target.value;
+
+        if(name === "fallback-method") {
+            this.setState({
+                selected: "fallback-method",
+                payable: true
+            });
+
+            return;
+        }
+
         let state = false;
 
         let ourMethod = this.state.functions.find(f => f.name === name);
@@ -215,6 +243,8 @@ class FunctionsPanel extends Component {
                          <div className="form-group">
                             <div className="col-lg-10">
                                 <select className="form-control" onChange={ this.selectMethod } value={ this.state.selected } id="select">
+                                    <option value=""> Select a method to test </option>
+                                    <option value="fallback-method"> Fallback function { this.state.fallback ? " (payable)" : " (non payable)"}</option>
                                     { this.state.declarations }
                                 </select>
                             </div>
