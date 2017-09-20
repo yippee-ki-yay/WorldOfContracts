@@ -50,7 +50,8 @@ class FunctionsPanel extends Component {
         );
 
         this.setState({
-            declarations
+            declarations,
+            selected: declarations[0].name
         });
     }
 
@@ -68,18 +69,24 @@ class FunctionsPanel extends Component {
             if(isTransaction) {
                 await this.makeTransaction(account, ourMethod, []);
             } else {
-                this.state.instance[ourMethod.name].call();
+                await this.makeCall(ourMethod.name, []);
             }
         } else {
 
             let inputsArr = [];
 
             ourMethod.inputs.forEach(input => {
-                inputsArr.push(this.state[input.name]);
+
+                let value = this.state[input.name];
+
+                if(input.type.indexOf("uint") !== -1) {
+                    value = parseInt(value, 10);
+                }
+                inputsArr.push(value);
             });
 
             if(!isTransaction) {
-
+                await this.makeCall(ourMethod.name, inputsArr);
             } else {
                 await this.makeTransaction(account, ourMethod, inputsArr);
             }
@@ -88,31 +95,63 @@ class FunctionsPanel extends Component {
     }
 
     makeTransaction = async (account, ourMethod, inputsArr) => {
-        const tx = await this.state.instance[ourMethod.name].sendTransaction(...inputsArr, {
+
+        
+        this.state.instance[ourMethod.name].sendTransaction(...inputsArr, {
             from: account, value: 0
-        });
+        }).then(tx => {
 
-        this.setState({loading: true});
+            this.setState({loading: true});
 
+            const currLogs = this.state.logs;
 
-        const currLogs = this.state.logs;
+            let interval = setInterval(() => {
 
-        let interval = setInterval(() => {
-            this.state.web3.eth.getTransactionReceipt(tx, (err, details) => {
+                const name = ourMethod.name;
 
-                if(details) {
-                    currLogs.push({transactionHash: tx, gas: 0});
+                this.state.web3.eth.getTransactionReceipt(tx, (err, details) => {
 
-                    this.setState({
-                        logs: currLogs,
-                        loading: false
-                    });
+                    if(details) {
+                        currLogs.push({isCall: false, transactionHash: tx, gas: details.gasUsed});
 
-                    clearInterval(interval);
-                }
+                        this.setState({
+                            name: name,
+                            index: currLogs.length,
+                            logs: currLogs,
+                            loading: false
+                        });
 
-            });
-        }, 5000);
+                        clearInterval(interval);
+                    }
+
+                });
+            }, 5000);
+        }).catch(err => {
+            console.log("Error", err);
+        })
+    }
+
+    makeCall = async (name, inputsArr) => {
+
+        try {
+            const result = await this.state.instance[name].call(...inputsArr);
+
+             console.log(result);
+        } catch(err) {
+            console.log(err);
+        }
+    
+
+        // const currLogs = this.state.logs;
+
+        // currLogs.push({
+        //     name: name,
+        //     index: currLogs.length,
+        //     isCall: true,
+        //     result: result.valueOf()
+        // });
+
+        // this.setState({logs: currLogs});
     }
 
     selectMethod = (event) => {
@@ -194,7 +233,10 @@ class FunctionsPanel extends Component {
                         <div>
                             {
                                 this.state.loading && 
-                                <span>Waiting for transaction to be mined!</span>
+                                <div className="alert alert-dismissible alert-warning">
+                                    <button type="button" className="close" data-dismiss="alert">&times;</button>
+                                    <span>Waiting for transaction to be mined!</span>
+                                </div>
                             }
                         </div>
                      </form>

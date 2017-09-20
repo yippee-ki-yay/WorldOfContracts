@@ -3,6 +3,8 @@ import getWeb3 from '../util/web3/getWeb3';
 
 import contract from 'truffle-contract';
 
+import './interface.css';
+
 import FunctionsPanel from './FunctionsPanel';
 import ConvertPanel from './ConvertPanel';
 import EventsPanel from './EventsPanel';
@@ -146,6 +148,18 @@ class ContractInterface extends Component {
     });
   }
 
+  refresh = async () => {
+    let publicVariables = this.state.publicVariables;
+
+    await Promise.all(publicVariables.map(p => this.state.instance[p.name].call().then(res => {
+      p.resolvedValue = res.valueOf();
+    })));
+
+    this.setState({
+      publicVariables
+    });
+  }
+
   render() {
 
     if(!this.state.loaded) {
@@ -223,7 +237,7 @@ class ContractInterface extends Component {
                 <div className="col-lg-4"> 
                    <div className="well bs-component" id="load-contract">
                     <form className="form-horizontal">
-                      <legend>Variables & Constant methods</legend>
+                      <legend>Constants <button type="button" onClick={ this.refresh } className="btn btn-link pull-right">Refresh</button></legend>
                       {
                         this.state.publicVariables.map(row => (
                           <p key={ row.name }> 
