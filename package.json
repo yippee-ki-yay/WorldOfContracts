@@ -1,6 +1,7 @@
 {
   "name": "react-auth-box",
   "version": "0.1.0",
+  "homepage": "https://yippee-ki-yay.github.io/WorldOfContracts/",
   "private": true,
   "devDependencies": {
     "autoprefixer": "6.5.1",
@@ -48,6 +49,7 @@
     "whatwg-fetch": "1.0.0"
   },
   "dependencies": {
+    "gh-pages": "^1.0.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-modal": "^2.3.2",
@@ -61,7 +63,9 @@
   "scripts": {
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
-    "test": "node scripts/test.js --env=jsdom"
+    "test": "node scripts/test.js --env=jsdom",
+    "predeploy": "",
+    "deploy": "gh-pages -d build_webpack"
   },
   "jest": {
     "collectCoverageFrom": [

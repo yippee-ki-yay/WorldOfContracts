@@ -28,8 +28,8 @@ getWeb3
 ReactDOM.render((
     <Provider store={store}>
       <Router history={history}>
-        <Route path="/" component={ App }>
-          <IndexRoute component={ Home } />
+        <Route path={ process.env.PUBLIC_URL } component={ App }>
+          <IndexRoute component={ ContractInterface } />
           <Route path="interface" component={ ContractInterface } />
           <Route path="contracts" component={ Home } />
         </Route>
