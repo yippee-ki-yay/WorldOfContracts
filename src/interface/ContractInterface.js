@@ -10,6 +10,7 @@ import ConvertPanel from './ConvertPanel';
 import EventsPanel from './EventsPanel';
 
 import SlotMachine from './contracts/SlotMachine';
+import TestToken from './contracts/TestToken';
 
 class ContractInterface extends Component {
 
@@ -71,6 +72,11 @@ class ContractInterface extends Component {
         name: "SlotMachine",
         abi: JSON.stringify(SlotMachine),
         address: '0x7D96790b267c57Aeb9d498fdF2FF584e8f0E5F3f'
+      },
+      {
+        name: "TestToken",
+        abi: JSON.stringify(TestToken),
+        address: '0x015fd063059265f49340154cb2b14747a571b01f'
       }
     ];
     this.setState({
@@ -105,14 +111,14 @@ class ContractInterface extends Component {
 
     this.state.web3.eth.getBalance(this.state.address, (err, res) => {
 
-    let balance = this.state.web3.fromWei(res.valueOf(), 'ether');
+      let balance = this.state.web3.fromWei(res.valueOf(), 'ether');
 
-    this.setState({
-        instance: instance,
-        loaded: true,
-        balance: balance,
-        name: name
-      });
+      this.setState({
+          instance: instance,
+          loaded: true,
+          balance: balance,
+          name: name
+        });
     });
 
   }
@@ -124,11 +130,11 @@ class ContractInterface extends Component {
     let events = [];
 
     abi.forEach((row) => {
-      if(row.constant === true && row.inputs.length === 0) { 
+      if(row.constant === true && row.inputs.length === 0 && row.payable === false) { 
         publicVariables.push(row);
       }
       
-      if(row.type === "function" && !(row.constant === true && row.inputs.length === 0)) {
+      if(row.type === "function" && !(row.constant === true && row.inputs.length === 0 && row.payable === false)) {
         functions.push(row);
       }
       

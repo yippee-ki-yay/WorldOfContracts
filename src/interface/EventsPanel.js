@@ -9,19 +9,39 @@ class EventsPanel extends Component {
             instance: props.instance,
             events: props.events,
             declarations: [],
-            selected: ''
+            selected: '',
+            logs: []
         };
     }
 
     componentWillMount() {
-        let events = this.state.instance.allEvents((error, log) => {
-            console.log(error);
-            console.log(log);
+        this.state.instance.allEvents((error, msg) => {
+            if(error) {
+                console.log(error);
+            }
+            
+            const log = {
+                name: msg.event,
+                tx: msg.transactionHash,
+                values: []
+            };
+
+            let event  = this.state.events.find(e => e.name === log.name);
+
+            event.inputs.forEach(e => {
+                let argument = msg.args[e.name];
+
+                log.values.push(argument.valueOf());
+            });
+
+            let currLogs = this.state.logs;
+            currLogs.push(log);
+
+            this.setState({
+                logs: currLogs
+            })
         });
 
-        events.get((error, logs) => {
-            console.log(logs);
-        });
 
         this.eventHeader();
 
@@ -52,8 +72,6 @@ class EventsPanel extends Component {
             <option value={ f.name } key={ f.name }> { f.name }({ this.formatHeader(f.inputs) }) </option>
         );
 
-        console.log(declarations);
-
         this.setState({
             declarations
         });
@@ -82,6 +100,24 @@ class EventsPanel extends Component {
                                 </select>
                             </div>
                         </div>
+                        
+                            {
+                                this.state.logs.map(log => 
+                                    <div className="row">
+                                    <div className="col-lg-8"> 
+                                        <div key={ log.tx } className="well well-sm">
+                                            <div>Event: { log.name }  </div>
+                                            <div>Results: </div>
+                                            {
+                                                log.values.map(v => 
+                                                    <span> { v } </span> 
+                                                )
+                                            }
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            }
                      </form>
                   </div>
                 </div>

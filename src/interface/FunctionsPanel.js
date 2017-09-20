@@ -17,7 +17,8 @@ class FunctionsPanel extends Component {
             hasInputs: false,
             inputs: '',
             logs: [],
-            loading: false
+            loading: false,
+            ether: ''
         };
     }
 
@@ -96,9 +97,10 @@ class FunctionsPanel extends Component {
 
     makeTransaction = async (account, ourMethod, inputsArr) => {
 
+        const valueInEther = this.state.web3.toWei(this.state.ether || 0, 'ether');
         
         this.state.instance[ourMethod.name].sendTransaction(...inputsArr, {
-            from: account, value: 0
+            from: account, value: valueInEther
         }).then(tx => {
 
             this.setState({loading: true});
@@ -136,22 +138,21 @@ class FunctionsPanel extends Component {
         try {
             const result = await this.state.instance[name].call(...inputsArr);
 
-             console.log(result);
+            const currLogs = this.state.logs;
+
+            currLogs.push({
+                name: name,
+                index: currLogs.length,
+                isCall: true,
+                result: result.valueOf()
+            });
+
+            this.setState({logs: currLogs});
         } catch(err) {
             console.log(err);
         }
     
 
-        // const currLogs = this.state.logs;
-
-        // currLogs.push({
-        //     name: name,
-        //     index: currLogs.length,
-        //     isCall: true,
-        //     result: result.valueOf()
-        // });
-
-        // this.setState({logs: currLogs});
     }
 
     selectMethod = (event) => {
@@ -161,6 +162,11 @@ class FunctionsPanel extends Component {
 
         let ourMethod = this.state.functions.find(f => f.name === name);
         let inputs;
+        let payable = false;
+
+        if(ourMethod.payable) {
+            payable = true;
+        }
 
         if(ourMethod.inputs.length > 0) {
             state = true;
@@ -189,7 +195,8 @@ class FunctionsPanel extends Component {
         this.setState({
             selected : name,
             hasInputs: state,
-            inputs: inputs
+            inputs: inputs,
+            payable: payable
         });
     }
 
@@ -215,6 +222,14 @@ class FunctionsPanel extends Component {
                                 <button type="button" className="btn btn-info" onClick={ this.runFunction }>Run!</button>
                             </div>
                         </div>
+
+                        { this.state.payable &&
+                            <div className="form-group">
+                                <div className="col-lg-8">
+                                    <input name="ether" value={ this.state.ether } onChange={ this.getInputs } type="text" className="form-control" placeholder="Send ether in transaction" />
+                                </div>
+                            </div>
+                        }
 
                         <div className="form-group">
                             { this.state.hasInputs && 
