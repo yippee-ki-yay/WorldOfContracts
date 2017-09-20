@@ -99,16 +99,27 @@ class ContractInterface extends Component {
     });
   }
 
-  loadContract = async () => {
-    const ourContract = contract(JSON.parse(this.state.abi));
+  loadABI = () => {
+    const abi = JSON.parse(this.state.abi);
 
-    const name = JSON.parse(this.state.abi).contract_name;
+    if(abi.contract_name) {
+      return abi;
+    } else {
+      return {
+        contract_name: "Test Contract",
+        abi: abi
+      }
+    }
+  }
+
+  loadContract = async () => {
+    const ourContract = contract(this.loadABI());
+
+    const name = this.loadABI().contract_name;
 
     ourContract.setProvider(this.state.web3.currentProvider);
 
     const instance = ourContract.at(this.state.address);
-
-    console.log(instance);
 
     await this.parseAbi(instance.abi, instance);
 
@@ -173,6 +184,17 @@ class ContractInterface extends Component {
 
     this.setState({
       publicVariables
+    });
+  }
+
+  refreshBalance = () => {
+      this.state.web3.eth.getBalance(this.state.address, (err, res) => {
+
+      let balance = this.state.web3.fromWei(res.valueOf(), 'ether');
+
+      this.setState({
+          balance: balance,
+        });
     });
   }
 
@@ -241,7 +263,7 @@ class ContractInterface extends Component {
                 <div className="well bs-component" id="load-contract">
                   <form className="form-horizontal">
                     <fieldset >
-                      <legend>Contract   { this.state.name } </legend>
+                      <legend>Contract   { this.state.name } <button type="button" onClick={ this.refreshBalance } className="btn btn-link pull-right">Refresh</button></legend>
                       <h4>Contract name: <span className="text-success"> { this.state.name } </span> </h4>
                       <h4>Contract address: <span className="text-success">{ this.state.address } </span> </h4>
                       <h4>Contract balance: <span className="text-success"> { this.state.balance } ether </span> </h4>

@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 
+import './interface.css';
+
 class EventsPanel extends Component {
 
     constructor(props) {
@@ -110,7 +112,7 @@ class EventsPanel extends Component {
                                             <div>Results:
                                                 {
                                                     log.values.map(v => 
-                                                        <span> { v } </span> 
+                                                        <span className="text-success results"> { v } </span>
                                                     )
                                                 }
                                              </div>

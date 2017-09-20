@@ -19,7 +19,8 @@ class FunctionsPanel extends Component {
             inputs: '',
             logs: [],
             loading: false,
-            ether: ''
+            ether: '',
+            currName: ''
         };
     }
 
@@ -90,7 +91,13 @@ class FunctionsPanel extends Component {
                     value = parseInt(value, 10);
                 }
                 inputsArr.push(value);
+
+                this.setState({
+                    [input]: ""
+                });
             });
+
+            console.log(this.state);
 
             if(!isTransaction) {
                 await this.makeCall(ourMethod.name, inputsArr);
@@ -120,13 +127,17 @@ class FunctionsPanel extends Component {
                 tx = tx.tx;
             }
 
-            this.setState({loading: true});
+            this.setState({loading: true, ether: ''});
 
             const currLogs = this.state.logs;
 
-            let interval = setInterval(() => {
+            const name = ourMethod.name || "";
 
-                //const name = ourMethod.name;
+            this.setState({
+                currName: name
+            });
+
+            let interval = setInterval(() => {
 
                 this.state.web3.eth.getTransactionReceipt(tx, (err, details) => {
 
@@ -135,7 +146,7 @@ class FunctionsPanel extends Component {
                         currLogs.push({isCall: false, transactionHash: tx, gas: details.gasUsed});
 
                         this.setState({
-                            name: "",
+                            name: this.state.currName,
                             index: currLogs.length,
                             logs: currLogs,
                             loading: false
@@ -199,20 +210,32 @@ class FunctionsPanel extends Component {
         if(ourMethod.inputs.length > 0) {
             state = true;
 
+            inputs = ourMethod.inputs.forEach((input, i) => {
+
+                if(input.name === "") {
+                    input.name = "name" + i;
+                }
+
+            });
+
             inputs = ourMethod.inputs.map((input, i) => {
+
+                if(input.name === "") {
+                    input.name = "name" + i;
+                }
 
                 if(i % 2 !== 0) {
                     return (
                         <div className="row" key={ input.name }>
                             <div className="col-lg-4">
-                                <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder="Add input" />
+                                <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder={ input.name } />
                             </div>
                         </div>
                     );
                 } else {
                     return (
                         <div className="col-lg-4" key={ input.name }>
-                            <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder="Add input" />
+                            <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder={ input.name } />
                         </div>
                     );
                 }
@@ -229,6 +252,9 @@ class FunctionsPanel extends Component {
     }
 
     getInputs = (event) => {
+
+        console.log(event.target.name, event.target.value);
+
         this.setState({
             [event.target.name] : event.target.value
         });
