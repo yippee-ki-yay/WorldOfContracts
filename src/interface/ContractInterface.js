@@ -31,7 +31,8 @@ class ContractInterface extends Component {
       events: [],
       fallback: false,
       selected: '',
-      contracts: []
+      contracts: [],
+      network: ''
     }
   }
 
@@ -50,6 +51,8 @@ class ContractInterface extends Component {
             accounts,
             web3
           });
+
+          this.getNetwork(web3);
       });
 
     })
@@ -198,6 +201,32 @@ class ContractInterface extends Component {
     });
   }
 
+  getNetwork = (web3) => {
+
+    let network = "";
+
+    web3.version.getNetwork((err, netId) => {
+      switch (netId) {
+        case "1":
+          network = "Mainnet";
+          break;
+        case "3":
+          network = "Ropsten testnet";
+          break;
+        case "4":
+          network = "Rinkbey testnet";
+          break;
+        case "42":
+          network = "Kovan testnet";
+          break;
+        default:
+          network = "Unknown network";
+      }
+
+      this.setState({ network });
+    });
+  }
+
   render() {
 
     if(!this.state.loaded) {
@@ -209,7 +238,7 @@ class ContractInterface extends Component {
               <form className="form-horizontal">
                 
                 <fieldset >
-                  <legend>Load Contract</legend>
+                  <legend>Load Contract <button type="button" className="btn btn-link pull-right">{ this.state.network }</button></legend>
                   <div className="form-group">
                     <div className="col-lg-10">
                       <input name="address" value={ this.state.address } onChange={ this.handleChange } type="text" className="form-control" id="inputEmail" placeholder="Contract Address" />
@@ -235,7 +264,7 @@ class ContractInterface extends Component {
               <div className="col-lg-4"> 
                 <div className="well bs-component" id="load-contract">
                   <form className="form-horizontal">
-                    <legend>Example contracts</legend>
+                    <legend>Example contracts (on Ropsten)</legend>
                       <div className="row">
                         <div className="col-lg-10">
                             <select className="form-control" onChange={ this.selectMethod } value={ this.state.selected } id="select">

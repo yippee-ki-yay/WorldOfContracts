@@ -16,11 +16,12 @@ class FunctionsPanel extends Component {
             declarations: [],
             selected: '',
             hasInputs: false,
-            inputs: '',
+            input: '',
             logs: [],
             loading: false,
             ether: '',
-            currName: ''
+            currName: '',
+            placeholder: ''
         };
     }
 
@@ -82,22 +83,15 @@ class FunctionsPanel extends Component {
         } else {
 
             let inputsArr = [];
+            let input = this.state.input;
 
-            ourMethod.inputs.forEach(input => {
+            if(input !== "") {
+                inputsArr = input.split(",");
+            }
 
-                let value = this.state[input.name];
-
-                if(input.type.indexOf("uint") !== -1) {
-                    value = parseInt(value, 10);
-                }
-                inputsArr.push(value);
-
-                this.setState({
-                    [input]: ""
-                });
-            });
-
-            console.log(this.state);
+            //  if(input.type.indexOf("uint") !== -1) {
+            //         value = parseInt(value, 10);
+            //     }
 
             if(!isTransaction) {
                 await this.makeCall(ourMethod.name, inputsArr);
@@ -200,8 +194,9 @@ class FunctionsPanel extends Component {
         let state = false;
 
         let ourMethod = this.state.functions.find(f => f.name === name);
-        let inputs;
         let payable = false;
+
+        const placeholder = this.formatHeader(ourMethod.inputs);
 
         if(ourMethod.payable) {
             payable = true;
@@ -209,52 +204,18 @@ class FunctionsPanel extends Component {
 
         if(ourMethod.inputs.length > 0) {
             state = true;
-
-            inputs = ourMethod.inputs.forEach((input, i) => {
-
-                if(input.name === "") {
-                    input.name = "name" + i;
-                }
-
-            });
-
-            inputs = ourMethod.inputs.map((input, i) => {
-
-                if(input.name === "") {
-                    input.name = "name" + i;
-                }
-
-                if(i % 2 !== 0) {
-                    return (
-                        <div className="row" key={ input.name }>
-                            <div className="col-lg-4">
-                                <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder={ input.name } />
-                            </div>
-                        </div>
-                    );
-                } else {
-                    return (
-                        <div className="col-lg-4" key={ input.name }>
-                            <input name={ input.name } value={ this.state[input.name] } onChange={ this.getInputs } type="text" className="form-control" placeholder={ input.name } />
-                        </div>
-                    );
-                }
-                
-            });
         }
 
         this.setState({
             selected : name,
             hasInputs: state,
-            inputs: inputs,
-            payable: payable
+            payable: payable,
+            placeholder: placeholder,
+            input: ""
         });
     }
 
     getInputs = (event) => {
-
-        console.log(event.target.name, event.target.value);
-
         this.setState({
             [event.target.name] : event.target.value
         });
@@ -279,7 +240,7 @@ class FunctionsPanel extends Component {
                             </div>
                         </div>
 
-                        { this.state.payable &&
+                        { this.state.payable && this.state.fallback &&
                             <div className="form-group">
                                 <div className="col-lg-8">
                                     <input name="ether" value={ this.state.ether } onChange={ this.getInputs } type="text" className="form-control" placeholder="Send ether in transaction" />
@@ -287,11 +248,13 @@ class FunctionsPanel extends Component {
                             </div>
                         }
 
-                        <div className="form-group">
-                            { this.state.hasInputs && 
-                                this.state.inputs
-                            }
-                        </div>
+                        { this.state.hasInputs && 
+                            <div className="form-group">
+                                <div className="col-lg-8">
+                                    <input name="input" value={ this.state.input } onChange={ this.getInputs } type="text" className="form-control" placeholder={ this.state.placeholder } />
+                                </div>
+                            </div>
+                        }
 
                         <div>
                             { 
