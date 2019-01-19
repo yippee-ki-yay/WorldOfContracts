@@ -9,8 +9,7 @@ import FunctionsPanel from './FunctionsPanel';
 import ConvertPanel from './ConvertPanel';
 import EventsPanel from './EventsPanel';
 
-import SlotMachine from './contracts/SlotMachine';
-import TestToken from './contracts/TestToken';
+import DSProxy from './contracts/DSProxy';
 
 class ContractInterface extends Component {
 
@@ -73,15 +72,10 @@ class ContractInterface extends Component {
         name: "Pick a contract"
       },
       {
-        name: "SlotMachine",
-        abi: JSON.stringify(SlotMachine),
-        address: '0x7D96790b267c57Aeb9d498fdF2FF584e8f0E5F3f'
+        name: "DSProxy",
+        abi: JSON.stringify(DSProxy),
+        address: ''
       },
-      {
-        name: "TestToken",
-        abi: JSON.stringify(TestToken),
-        address: '0x015fd063059265f49340154cb2b14747a571b01f'
-      }
     ];
     this.setState({
         contracts
@@ -264,7 +258,7 @@ class ContractInterface extends Component {
               <div className="col-lg-4"> 
                 <div className="well bs-component" id="load-contract">
                   <form className="form-horizontal">
-                    <legend>Example contracts (on Ropsten)</legend>
+                    <legend>Example contracts</legend>
                       <div className="row">
                         <div className="col-lg-10">
                             <select className="form-control" onChange={ this.selectMethod } value={ this.state.selected } id="select">
